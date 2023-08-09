@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive
 USER root
 
 RUN apt-get -qq update && \
-    apt-get install -y net-tools procps libnetcdf-dev netcdf-bin unzip ca-certificates curl libnlopt0 make gcc emacs-nox git g++ && \
+    apt-get install -y unzip && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -29,8 +29,8 @@ ENV LD_LIBRARY_PATH /opt/conda/lib/
 RUN conda config --add channels conda-forge && \
     conda config --add channels bioconda && \
     conda install --yes --quiet \
-    biopython \
-    rpy2 \
+    #biopython \
+    #rpy2 \
     bash_kernel \
     #octave_kernel \
     # Scala
