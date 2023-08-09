@@ -72,8 +72,8 @@ ADD ./default_notebook.ipynb /home/$NB_USER/notebook.ipynb
 RUN cd /home/$NB_USER/ &&  \
     wget -O Source-main.zip https://github.com/fair-ease/Source/archive/refs/heads/main.zip && \
     unzip Source-main.zip && \
-    rm /home/$NB_USER/Source-main.zip \
-    mv /home/$NB_USER/Source-main/notebooks /home/$NB_USER \
+    rm /home/$NB_USER/Source-main.zip && \
+    mv /home/$NB_USER/Source-main/notebooks /home/$NB_USER && \
     rm -r /home/$NB_USER/Source-main
 
 # ENV variables to replace conf file
