@@ -20,7 +20,7 @@ docker run -it  -p 8888:8888  quay.io/galaxy/coastal-source-jupyter-lab:latest j
 
 ### Configuration
 
-This image is based on top of the fantastic work of Jocelyn Le Sage [base GUI image](https://github.com/jlesage/docker-baseimage-gui). Please consult the documentation of the [upstream container](https://github.com/jlesage/docker-baseimage-gui).
+This image is based on top of the fantastic work of Björn Grüning [base jupyter image](https://github.com/bgruening/docker-jupyter-notebook).
 
 ### Galaxy integration
 
