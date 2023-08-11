@@ -14,7 +14,7 @@ SOURCE is now available on [Galaxy](https://usegalaxy.eu/root?tool_id=interactiv
 You can start the container outside of Galaxy with:
 
 ```bash
-docker run -it  -p 8888:8888  quay.io/galaxy/coastl-source-jupyter-lab:latest jupyter-lab bash
+docker run -it  -p 8888:8888  quay.io/galaxy/coastal-source-jupyter-lab:latest jupyter-lab bash
 ```
 
 ### Configuration
