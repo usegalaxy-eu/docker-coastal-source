@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive
 USER root
 
 RUN apt-get -qq update && \
-    apt-get install -y unzip && \
+    apt-get install -y unzip net-tools procps && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -90,22 +90,6 @@ ENV DEBUG=false \
 # @jupyterlab/google-drive  not yet supported
 
 USER root
-
-RUN apt-get -qq update && \
-    apt-get install -y net-tools procps && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-    
-# /import will be the universal mount-point for Jupyter
-# The Galaxy instance can copy in data that needs to be present to the Jupyter webserver
-RUN mkdir -p /import/jupyter/outputs/ && \
-    mkdir -p /import/jupyter/data && \
-    mkdir /export/ && \
-    chown -R $NB_USER:users /home/$NB_USER/ /import /export/
-
-##USER jovyan
-
 WORKDIR /import
 
 # Start Jupyter Notebook
