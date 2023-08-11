@@ -3,7 +3,8 @@
 # Docker image for SOURCE - constructed for the use as Galaxy IT
 
 [![Docker Repository on Quay](https://quay.io/repository/galaxy/coastal-source-headless/status "Docker Repository on Quay")](https://quay.io/repository/galaxy/coastal-source-headless)
-Docker container for Sea Observations Utility for Reprocessing, Calibration and Evaluation (SOURCE)
+Docker container for Sea Observations Utility for Reprocessing, Calibration and Evaluation (SOURCE).
+
 SOURCE is now available on [Galaxy](https://usegalaxy.eu/root?tool_id=interactive_tool_source).
 
 ![SOURCE in Galaxy](./source_in_galaxy.png)
