@@ -17,13 +17,6 @@ You can start the container outside of Galaxy with:
 docker run -it  -p 8888:8888  quay.io/galaxy/coastl-source-jupyter-lab:latest jupyter-lab bash
 ```
 
-Once you are in the container you can start the application with:
-
-```bash
-/init
-```
-
-
 ### Configuration
 
 This image is based on top of the fantastic work of Jocelyn Le Sage [base GUI image](https://github.com/jlesage/docker-baseimage-gui). Please consult the documentation of the [upstream container](https://github.com/jlesage/docker-baseimage-gui).
