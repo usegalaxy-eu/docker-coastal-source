@@ -42,20 +42,29 @@ ARG PYTHON_VERSION
 
 WORKDIR /usr/src/app 
 
-RUN apt-get update
-RUN apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        libxml2 \
+        magics++ \
+        libudunits2-0 \
+        build-essential \
+        autoconf \
+        automake \
+        gdb \
+        libffi-dev \
+        zlib1g-dev \
+        libssl-dev \
+        unzip \
+        wget && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2 magics++ libudunits2-0 
-#RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libblosc-dev
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf automake gdb libffi-dev zlib1g-dev libssl-dev
 
 COPY --from=build /usr/local/bin/cdo /usr/local/bin/cdo
 
 WORKDIR /usr/src/app 
 
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
+RUN pip install --upgrade pip setuptools
+
 ADD requirements_jupyter_3-13.txt /usr/src/app
 #ADD docker/constraints.txt /usr/src/app
 #RUN pip install -r requirements_jupyter.txt -c constraints.txt
