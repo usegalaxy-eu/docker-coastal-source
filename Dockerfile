@@ -1,97 +1,78 @@
-# Jupyter container used for Galaxy IPython (+other kernels) Integration
+# update if change version
+ARG PYTHON_VERSION="3.13"
+# update if you prefer a different distribution
+ARG LINUX_DIST="slim-bookworm"
 
-# from 5th March 2021
-FROM jupyter/datascience-notebook:python-3.10
+FROM python:${PYTHON_VERSION}-${LINUX_DIST} AS build
+ARG PYTHON_VERSION
 
-MAINTAINER Björn A. Grüning, bjoern.gruening@gmail.com
+WORKDIR /usr/src/app 
 
-ENV DEBIAN_FRONTEND noninteractive
-USER root
+RUN apt-get update
+RUN apt-get upgrade -y
 
-RUN apt-get -qq update && \
-    apt-get install -y unzip net-tools procps && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libnetcdf-dev libhdf5-dev 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf automake gdb libffi-dev zlib1g-dev libssl-dev git wget
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3-dev python3-venv python3-pip
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3-h5py python3-h5py-mpi python3-h5py-serial python3-h5sparse 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libudunits2-dev libeccodes-dev libproj-dev libmagics++-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git wget
 
-# Set channels to (defaults) > bioconda > conda-forge
-RUN conda config --add channels conda-forge && \
-    conda config --add channels bioconda
-    #conda config --add channels defaults
+### install CDO
+RUN /usr/bin/mkdir cdo
+WORKDIR /usr/src/app/cdo
+RUN wget https://code.mpimet.mpg.de/attachments/download/29864/cdo-2.5.1.tar.gz
+RUN /usr/bin/tar -xvzf cdo-2.5.1.tar.gz
+WORKDIR /usr/src/app/cdo/cdo-2.5.1
+RUN ./configure --enable-netcdf4  --enable-zlib --with-netcdf=/usr --with-hdf5=/usr/lib/x86_64-linux-gnu/hdf5/serial --with-proj=/usr --with-util-linux-uuid=/usr --with-threads=/usr --with-magics=/usr --with-szlib=/usr/lib --with-udunits2=/usr --with-libxml2=/usr --with-curl=/usr --with-ossp-uuid=/usr --with-dce-uuid=/usr --with-eccodes=/usr  --with-util-linux-uuid=/usr
+
+RUN make clean;
+RUN make -j 4
+RUN make install
+###
+
+WORKDIR /usr/src/app 
+
+RUN git clone https://github.com/fair-ease/Source.git
+
+
+FROM python:${PYTHON_VERSION}-${LINUX_DIST} AS final
+ARG PYTHON_VERSION
+
+WORKDIR /usr/src/app 
+
+RUN apt-get update
+RUN apt-get upgrade -y
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2 magics++ libudunits2-0 
+#RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libblosc-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf automake gdb libffi-dev zlib1g-dev libssl-dev
+
+COPY --from=build /usr/local/bin/cdo /usr/local/bin/cdo
+
+WORKDIR /usr/src/app 
+
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir bioblend galaxy-ie-helpers
+RUN pip install --upgrade setuptools
+ADD requirements_jupyter_3-13.txt /usr/src/app
+#ADD docker/constraints.txt /usr/src/app
+#RUN pip install -r requirements_jupyter.txt -c constraints.txt
+RUN pip install -r requirements_jupyter_3-13.txt 
 
-ENV JUPYTER /opt/conda/bin/jupyter
-ENV PYTHON /opt/conda/bin/python
-ENV LD_LIBRARY_PATH /opt/conda/lib/
+# Download and extract notebooks directly
+ADD https://github.com/fair-ease/Source/archive/refs/heads/PAOLO.zip /tmp/PAOLO.zip
+RUN apt-get update && apt-get install -y unzip && \
+    unzip /tmp/PAOLO.zip -d /root && \
+    mv /root/Source-PAOLO/notebooks /root/notebooks && \
+    rm -rf /tmp/PAOLO.zip /root/Source-PAOLO
 
-# Python packages
-RUN conda config --add channels conda-forge && \
-    conda config --add channels bioconda && \
-    conda install --yes --quiet \
-    #biopython \
-    #rpy2 \
-    bash_kernel \
-    #octave_kernel \
-    # Scala
-    #spylon-kernel \
-    # Java
-    #scijava-jupyter-kernel \
-    # ansible
-    ansible-kernel \
-    bioblend galaxy-ie-helpers \
-    # Jupyter widgets
-    jupytext \
-    source \ 
-    folium \
-    ftputil \ 
-    matplotlib \
-    altair \
-    shapely \
-    cython patsy statsmodels cloudpickle dill r-xml && \
-    conda clean -yt && \
-    pip install jupyterlab_hdf
+RUN mkdir /usr/local/lib/python${PYTHON_VERSION}/site-packages/SOURCE
+#ADD SOURCE /usr/local/lib/python${PYTHON_VERSION}/site-packages/SOURCE
+COPY --from=build /usr/src/app/Source/SOURCE /usr/local/lib/python${PYTHON_VERSION}/site-packages/SOURCE
 
-ADD ./startup.sh /startup.sh
-ADD ./get_notebook.py /get_notebook.py
 
-# We can get away with just creating this single file and Jupyter will create the rest of the
-# profile for us.
-RUN mkdir -p /home/$NB_USER/.ipython/profile_default/startup/ && \
-    mkdir -p /home/$NB_USER/.jupyter/custom/
-
-COPY ./ipython-profile.py /home/$NB_USER/.ipython/profile_default/startup/00-load.py
-COPY jupyter_notebook_config.py /home/$NB_USER/.jupyter/
-COPY jupyter_lab_config.py /home/$NB_USER/.jupyter/
-
-ADD ./custom.js /home/$NB_USER/.jupyter/custom/custom.js
-ADD ./custom.css /home/$NB_USER/.jupyter/custom/custom.css
-ADD ./default_notebook.ipynb /home/$NB_USER/notebook.ipynb
-
-# Download notebooks
-RUN cd /home/$NB_USER/ &&  \
-    wget -O Source-main.zip https://github.com/fair-ease/Source/archive/refs/heads/main.zip && \
-    unzip Source-main.zip && \
-    rm /home/$NB_USER/Source-main.zip && \
-    mv /home/$NB_USER/Source-main/notebooks /home/$NB_USER && \
-    rm -r /home/$NB_USER/Source-main
-
-# ENV variables to replace conf file
-ENV DEBUG=false \
-    GALAXY_WEB_PORT=10000 \
-    NOTEBOOK_PASSWORD=none \
-    CORS_ORIGIN=none \
-    DOCKER_PORT=none \
-    API_KEY=none \
-    HISTORY_ID=none \
-    REMOTE_HOST=none \
-    GALAXY_URL=none
-
-# @jupyterlab/google-drive  not yet supported
-
-USER root
-WORKDIR /import
-
-# Start Jupyter Notebook
-CMD /startup.sh
-
+#CMD [ "/bin/bash" ]
+#ENTRYPOINT ["/usr/local/bin/jupyter-lab", "-ServerApp.max_buffer_size=4294967296", "--notebook-dir=/usr/src/app/", "--ip='*'", "--port=8888", "--no-browser", "--allow-root"]
+#ENTRYPOINT ["/usr/local/bin/jupyter-lab", "-ServerApp.max_buffer_size=4294967296", "--notebook-dir=/usr/src/app/", "--ip='*'", "--port=8888", "--no-browser", "--allow-root", "-Application.log_level='DEBUG'", "-JupyterApp.log_level='DEBUG'", "-NotebookApp.log_level='DEBUG'", "-Session.debug=True"]
