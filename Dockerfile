@@ -16,7 +16,7 @@ RUN apt-get update && apt-get upgrade -y && \
       autoconf automake gdb libffi-dev zlib1g-dev libssl-dev git wget \
       python3-dev python3-venv python3-pip \
       python3-h5py python3-h5py-mpi python3-h5py-serial python3-h5sparse \
-      libudunits2-dev libeccodes-dev libproj-dev libmagics++-dev && \
+      libudunits2-dev libeccodes-dev libproj-dev libmagics++-dev \
       unzip && \ 
     rm -rf /var/lib/apt/lists/*
 
