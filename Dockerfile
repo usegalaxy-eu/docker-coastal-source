@@ -38,10 +38,10 @@ RUN git clone https://github.com/fair-ease/Source.git
 
 # Fetch & unpack PAOLO notebooks
 RUN mkdir -p /root/notebooks && \
-    wget -O /tmp/PAOLO.zip https://github.com/fair-ease/Source/archive/refs/heads/PAOLO.zip && \
-    unzip /tmp/PAOLO.zip -d /root && \
-    mv /root/Source-PAOLO/notebooks/* /root/notebooks/ && \
-    rm -rf /tmp/PAOLO.zip /root/Source-PAOLO     
+    wget -O /tmp/source-main.zip https://codeload.github.com/fair-ease/Source/zip/refs/heads/main && \
+    unzip /tmp/source-main.zip -d /root && \
+    mv /root/Source-main/notebooks/* /root/notebooks/ && \
+    rm -rf /tmp/source-main.zip /root/Source-main   
 
 FROM python:${PYTHON_VERSION}-${LINUX_DIST} AS final
 ARG PYTHON_VERSION
